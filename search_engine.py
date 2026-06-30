@@ -12,6 +12,60 @@ class SearchEngine:
             result.update(posting.keys())
         return sorted(result)
 
+    def get_documents(self, term):
+        posting =self.index.get_postings(term.lower())
+        return set(posting.keys())
+    
+    def and_search(self, term1, term2):
+        docs1 =self.get_documents(term1)
+        docs2 =self.get_documents(term2)
+        return sorted(docs1&docs2)
+    
+    def or_search(self, term1, term2):
+        docs1 =self.get_documents(term1)
+        docs2 =self.get_documents(term2)
+        return sorted(docs1 | docs2)
+    
+    def not_search(self, term):
+        docs =self.get_documents(term)
+        all_docs =set(self.documents.keys())
+        return sorted(all_docs-docs)
+    
+    def A_not_B_search(self, term1, term2):
+        docs1 =self.get_documents(term1)
+        docs2 =self.get_documents(term2)
+        return sorted(docs1-docs2)
+    
+    def boolean_search(self, query):
+        tokens =query.split()
+        if len(tokens)==2:
+            operator= tokens[0]
+            term1= tokens[1].lower()
+            if  operator == "not":
+                return self.not_search(term1)
+            else:
+                print("Invalid Boolean Query")
+                return [] 
+        elif len(tokens)==3:
+            term1 =tokens[0]
+            operator =tokens[1].lower()
+            term2 =tokens[2]
+            if operator == "and":
+                return self.and_search(term1,term2)
+            elif operator == "or":
+                return self.or_search(term1,term2)
+            elif operator == "not":
+                return self.A_not_B_search(term1,term2)
+            else:
+                print("Unknown Operator")
+                return []
+        else:
+            len(tokens)!=3
+            print("Invalid Boolean Query")
+            return []
+        
+    
+        
     def print_results(self, results):
         if len(results) == 0:
             print("No Results Found :(")
