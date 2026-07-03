@@ -64,6 +64,23 @@ class SearchEngine:
             print("Invalid Boolean Query")
             return []
         
+
+    def ranked_search(self, query, tfidf):
+        terms =query.lower().split()
+        scores ={}
+        for term in terms:
+            posting = self.index.get_postings(term)
+            for doc_id in posting.keys():
+                weight = tfidf.get_weight(term, doc_id)
+                if doc_id not in scores:
+                    scores[doc_id] =0
+                scores[doc_id] += weight
+        ranked_results = sorted(
+            scores.items(),
+            key=lambda item:item[1],
+            reverse=True
+        )
+        return ranked_results
     
         
     def print_results(self, results):
@@ -71,10 +88,10 @@ class SearchEngine:
             print("No Results Found :(")
             return
         print(f"\nFound {len(results)} result(s)\n")
-        for i,doc_id in enumerate(results,start=1):
+        for rank, (doc_id,score) in enumerate(results,start=1):
             row = self.df.iloc[doc_id]
             print("="*70)
-            print(f"Result #{i}")
+            print(f"Rank    : #{rank}")
             print(f"DocID   : {doc_id}")
             print(f"Match   : {row['home_team']} vs {row['away_team']}")
             print(f"Date    : {row['Date']}")
@@ -83,8 +100,10 @@ class SearchEngine:
             print(f"Host    : {row['Host']}")
             print(f"Referee : {row['Referee']}")
             print(f"Score   : {row['Score']}")
+            print(f"TF-IDF  : {score:.4f}")
             print("-"*70)
             preview = " ".join(self.documents[doc_id][:35])
             print("Preview:")
             print(preview)
             print()
+            

@@ -11,21 +11,16 @@ class TF_IDF:
     def calculate_idf(self):
         for term, posting in self.index.index.items():
             df =len(posting)
-            print('df:  {}'.format(df))
             self.idf[term] =math.log(self.N/df)
-            print("idf[]:  {}".format(self.idf[term]))
 
 
     def calculate_weights(self):
         self.calculate_idf()
         for term, posting in self.index.index.items():
             self.weights[term] = {}
-            print("har kalameh:")
             for doc_id, info in posting.items():
                 tf =info["tf"]
-                print(tf)
                 self.weights[term][doc_id] = tf*self.idf[term]
-                print("wazn:  {}".format(self.weights[term][doc_id] ))
 
 
     def get_weight(self, term, doc_id):
