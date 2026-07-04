@@ -4,13 +4,13 @@ class SearchEngine:
         self.documents = documents
         self.df= dataframe
 
-    def search(self, query): 
+    def search(self, query,tfidf): 
         words = query.lower().split()
         result = set()
         for word in words:
             posting = self.index.get_postings(word)
             result.update(posting.keys())
-        return sorted(result)
+        return self.ranking(result,words,tfidf)
 
     def get_documents(self, term):
         posting =self.index.get_postings(term.lower())
@@ -36,51 +36,44 @@ class SearchEngine:
         docs2 =self.get_documents(term2)
         return sorted(docs1-docs2)
     
-    def boolean_search(self, query):
+    def boolean_search(self, query,tfidf):
         tokens =query.split()
-        if len(tokens)==2:
-            operator= tokens[0]
-            term1= tokens[1].lower()
-            if  operator == "not":
-                return self.not_search(term1)
-            else:
-                print("Invalid Boolean Query")
-                return [] 
+        if len(tokens)!=3:
+            print("Invalid Boolean Query")
+            return [] 
         elif len(tokens)==3:
             term1 =tokens[0]
             operator =tokens[1].lower()
             term2 =tokens[2]
             if operator == "and":
-                return self.and_search(term1,term2)
+                docs= self.and_search(term1,term2)
+                return self.ranking(docs,[term1,term2],tfidf)
             elif operator == "or":
-                return self.or_search(term1,term2)
+                docs= self.or_search(term1,term2)
+                return self.ranking(docs,[term1,term2],tfidf)
             elif operator == "not":
-                return self.A_not_B_search(term1,term2)
+                docs= self.A_not_B_search(term1,term2)
+                return self.ranking(docs,[term1,tfidf])
             else:
                 print("Unknown Operator")
                 return []
-        else:
-            len(tokens)!=3
-            print("Invalid Boolean Query")
-            return []
         
+    
 
-    def ranked_search(self, query, tfidf):
-        terms =query.lower().split()
+    def ranking(self, documents, terms, tfidf):
         scores ={}
-        for term in terms:
-            posting = self.index.get_postings(term)
-            for doc_id in posting.keys():
-                weight = tfidf.get_weight(term, doc_id)
-                if doc_id not in scores:
-                    scores[doc_id] =0
-                scores[doc_id] += weight
-        ranked_results = sorted(
+        for doc_id in documents:
+            score =0
+            for term in terms:
+                posting =self.index.get_postings(term)
+                if doc_id in posting:
+                    score+=tfidf.get_weight(term,doc_id)
+            scores[doc_id]=score
+        return sorted(
             scores.items(),
-            key=lambda item:item[1],
+            key=lambda x: x[1],
             reverse=True
         )
-        return ranked_results
     
         
     def print_results(self, results):
