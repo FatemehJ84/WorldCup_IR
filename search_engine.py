@@ -53,7 +53,7 @@ class SearchEngine:
                 return self.ranking(docs,[term1,term2],tfidf)
             elif operator == "not":
                 docs= self.A_not_B_search(term1,term2)
-                return self.ranking(docs,[term1,tfidf])
+                return self.ranking(docs,[term1],tfidf)
             else:
                 print("Unknown Operator")
                 return []
