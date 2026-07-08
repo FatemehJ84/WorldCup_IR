@@ -7,6 +7,7 @@ from inverted_index import InvertedIndex
 from search_engine import SearchEngine
 from TF_IDF import TF_IDF
 from controller import Controller
+from evaluation import Evaluation
 
 builder = DocumentBuilder("data/matches_1930_2022.csv")
 
@@ -22,6 +23,9 @@ tfidf = TF_IDF(index, processed_docs)
 tfidf.calculate_weights()
 
 engine = SearchEngine(index, processed_docs,builder.df)
-controller = Controller(engine, tfidf)
+evaluation=Evaluation(engine,tfidf)
 
-controller.choose("mbappe AND goal")
+# evaluation.evaluate_all()
+
+controller = Controller(engine, tfidf)
+controller.choose("argentina final")
